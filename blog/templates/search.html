@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    /* body, div, header, h2, p, a, table, th, tr, td, img {
+        border: 1px solid black;
+    } */
+    .post-table {
+        width: 80%;
+        margin: 5px auto;
+        padding: 10px;
+        background-color: white;
+        padding: 10px;
+        border: 2px solid black;
+    }
+    tr, td, th {
+        padding: 5px;
+    }
+    th {
+        border-bottom: 2px solid black;
+    }
+    
+    .direction {
+        text-align: center;
+    }
+    a {
+        text-decoration: none;
+        color: black;
+    }
+    .post_title{
+        background-color:rgb(79, 173, 228);
+    }
+    .post_body{
+        background-color:rgb(224, 164, 201);
+    }
+    .post_title:hover{
+        text-decoration: underline;
+    }
+    .thumbnail {
+        width: 150px;
+    }
+</style>
+<br>
+<div class="big-container">
+        {% for post in posts %}
+        <table class="post-table">
+            <tr>
+                <th colspan="2"><a href="{%url 'blog:personal' post.author.id %}">&#128526; {{post.author}}</a></th>
+            </tr>
+            {% if post.image %}
+            <tr>
+                <td rowspan="2" class="thumbnail"><img src="{{post.image_thumbnail.url}}" alt="thumbnail"></td>
+            
+            {% endif %}
+                <td class="post_title"><a href="{%url 'blog:detail' post.id %}" >{{post.title}}</a></td>
+            </tr>
+            <tr>
+                <td class="post_body">{{post.summary}}</td>
+            </tr>
+        </table>
+        <br>
+        {% endfor %}
+    <br>
+    
+    
+
+
+    <div class="container direction">
+    <!-- 로그인 상태 -->
+
+        {% if posts.has_previous %}
+            <a href="?page=1">First</a>
+            <a href="?page={{posts.previous_page_number}}">&#9194;</a>
+        {% endif %}
+
+            <span>{{posts.number}}</span>
+            <span>of</span>
+            <span>{{posts.paginator.num_pages}}</span>
+        
+        {% if posts.has_next %}
+            <a href="?page={{posts.next_page_number}}">&#9193;</a>
+            <a href="?page={{posts.paginator.num_pages}}">Last</a>
+        {% endif %}
+
+    </div>
+</div>
+<br>
+
+
+{% endblock %}

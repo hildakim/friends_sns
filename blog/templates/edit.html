@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<style>
+    header{
+        color: white;
+        font-weight: bold;
+        text-align: center;
+    }
+    label {
+        /* background-color: white; */
+        font-weight: bold;
+    }
+    .controls {
+        background-color: white;
+        color: black;
+        font-weight: bold;
+    }
+    .form-group {
+        box-sizing: border-box;
+        width: 500px;
+        background-color: white;
+        padding: 10px;
+        border: 2px solid black;
+        margin: 1px;
+    }
+    #div_id_title{background-color:rgb(224, 164, 201);}
+    #div_id_body{background-color:rgb(79, 173, 228);}
+    form {
+        text-align: center;
+        box-sizing: border-box;
+        width: 500px;
+        display: block;
+        margin: auto;
+    }
+    .form-wrapper {
+        text-align: center;
+    }
+
+    .textarea {
+        box-sizing: border-box;
+        width: 100%;
+    }
+</style>
+
+
+<header>
+    <h1>Update</h1>
+</header>
+
+<div class="form-wrapper">
+    <form method="POST" enctype="multipart/form-data">
+        {%csrf_token%}
+        {{edit_form | crispy}}
+        <br>
+        <button type="submit"> submit </button>
+    </form>
+</div>
+
+
+{% endblock %}

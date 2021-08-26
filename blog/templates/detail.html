@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load crispy_forms_tags %}
+{% load static %}
+<head>
+    <style>
+        .post-wrapper {
+            background-color: white;
+            border: 2px black solid;
+        }
+        .post-wrapper a, p {
+            padding: 5px;
+        }
+        .image-box{
+            box-sizing: border-box;
+            width: 500px;
+            background-color: white;
+        }
+        .image-box img{
+            display: block;
+            margin:auto;
+            width: 400px;
+        }
+        .heart {
+            width: 20px;
+            height: 20px;
+            background-color: white;
+        }
+        .like-box button {
+            background-color: white;
+            border: none;
+        }
+        .post_title {
+            border-bottom: 2px solid black;
+            font-size: 30px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        .post_body {
+            color: black;
+            border-top: 2px solid black;
+            margin-top: 3px;
+        }
+        .post_author {
+            text-decoration: none;
+            background-color: rgb(224, 164, 201);
+            color: black;
+        }
+        .button-box { 
+            border-top: 2px solid black;
+            text-align: end;
+            padding: 5px;
+        }
+        .button-box a {
+            background-color: rgb(79, 173, 228);
+            color: black;
+            text-decoration: none;
+        }
+        .div_recomment {
+            display: none;
+            background-color: rgb(228, 187, 212);
+            padding: 5px;
+        }
+        .btn_recomment {
+            margin: 0;
+            color: rgb(79, 173, 228);
+        }
+        #id_body {
+            width: 100%;
+            height: 70px;
+        }
+        .comment-form_box {
+            background-color: white;
+            padding: 10px;
+            border: 2px solid black;
+            margin-bottom: 10px;
+        }
+        .comment_wrapper {
+            border: 2px solid black;
+            background-color: white;
+        }
+        .comment-item {
+            border-bottom: 2px solid black;
+            padding:10px;
+        }
+    </style>
+        
+</head>
+
+
+<script type="text/javascript">
+    function post_like(p_id){
+        $.ajax({
+            type: "GET",
+            url: "{% url 'blog:post_likes' %}",
+            data: {
+                'blog_id':p_id
+            },
+            dataType: 'json',
+            success: function(response){
+
+                $('#like_count'+p_id).html(response.like_count)
+                    if(response.message == "좋아요"){
+                        $('#heart'+p_id).attr("src", "{%static 'heart.png' %}")
+                    } else if (response.message == "좋아요 취소") {
+                        $('#heart'+p_id).attr("src", "{%static 'empty_heart.png' %}")
+                    }
+            },
+            // error:function(request,status,error){
+            //     alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+            // }
+
+        })
+    }
+
+    function dpRecomment(obj) {
+        comment_id = obj.getAttribute('value');
+        var con = document.getElementById('div_recomment'+comment_id);
+        var btn = document.getElementById('btn_recomment'+comment_id);
+
+        if(con.style.display=='none'){
+            con.style.display = 'block';
+            btn.innerHTML = '접기'
+        }else{
+            con.style.display = 'none';
+            btn.innerHTML = '대댓글 보기'
+        }
+    }
+</script>
+
+
+<div class="post-wrapper">
+    
+
+    <div class="text-box">
+        <p class="post_title">{{post.title}}</p>
+        <a href="{%url 'blog:personal' post.author.id %}" class="post_author">&#128526;{{post.author}}</a>
+        <span>{{post.upload_date}}</span>
+        <div class="post_body">{{post.body | linebreaks }}</div>
+    </div>
+
+    {% if post.image %}
+    <div class="image-box">
+        <img src="{{post.image.url}}" alt="" >
+    </div>
+    {% endif %}
+
+    <div class="like-box">
+        {%if user.is_authenticated %}
+        <button id="{{post.id}}" onclick="post_like(this.id)">
+            {%if request.user in post.like.all%}
+            <img class="heart" id="heart{{post.id}}" src="{% static 'heart.png' %}" alt="full_heart">
+            {%else%}
+            <img class="heart" id="heart{{post.id}}" src="{% static 'empty_heart.png' %}" alt="empty_heart">
+            {%endif%}
+        </button>
+        {%else%}
+        <button id="{{post.id}}" onclick="alert('로그인이 필요합니다')">
+            <img class="heart" id="heart" src="{% static 'empty_heart.png' %}" alt="empty_heart">
+        </button>
+        {%endif%}
+        <span id="like_count{{post.id}}">{{post.like.count}}</span>
+    </div>
+
+    
+
+    {% if user == post.author %}
+    <div class="button-box">
+        <a href="{%url 'blog:edit' post.id %}" class="a-button">edit</a>
+        <a href="{%url 'blog:delete' post.id %}" class="a-button">delete</a>
+    </div>
+    {%endif%}
+    
+</div>
+
+
+<br><hr><br>
+
+
+<div class="comment-form_box">
+    <p>댓글 쓰기</p>
+    <form method="POST" enctype="multipart/form-data" action="{%url 'blog:create_comment' post.id%}">
+        {%csrf_token%}
+        {{form | crispy}} <br>
+        <button type="submit">입력</button>
+    </form>
+</div>
+
+
+{%if comments %}
+<div class="comment_wrapper">
+    {% for comment in comments %}
+    <div class="comment-item">
+        작성자 : {{comment.writer}}<br>
+        내용: {{comment.body}}<br>
+        <button onclick="dpRecomment(this)" id="btn_recomment{{comment.id}}" value="{{comment.id}}" class="btn_recomment">대댓글 보기</button>
+            <div id="div_recomment{{comment.id}}" class="div_recomment">
+                {% for re_comment in re_comments %}
+                    {% if comment == re_comment.comment_id %}
+                    작성자: {{re_comment.writer}}<br>
+                    내용: {{re_comment.body}}
+                    <hr>
+                    {% endif %}
+                {% endfor %}
+                <form action="{% url 'blog:re_comment' post.id comment.id %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{form.as_p}}
+                    <button type="submit">대댓글 쓰기</button>
+                </form>
+                <br>
+            </div>
+    </div>
+    {% endfor %}
+</div>
+<br>
+
+{%endif%}
+
+{% endblock %}

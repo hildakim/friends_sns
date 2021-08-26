@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .follow-box {
+        background-color: white;
+        width: fit-content;
+        padding: 20px;
+        text-align: center;
+        margin: 5px auto;
+    }
+    .post-table {
+        width: 80%;
+        margin: 5px auto;
+        padding: 10px;
+        background-color: white;
+        padding: 10px;
+        border: 2px solid black;
+    }
+    tr, td, th {
+        padding: 5px;
+    }
+    .direction {
+        text-align: center;
+    }
+    a {
+        text-decoration: none;
+        color: black;
+    }
+    .post_title{
+        background-color:rgb(79, 173, 228);
+    }
+    .post_body{
+        background-color:rgb(224, 164, 201);
+    }
+    .post_title:hover{
+        text-decoration: underline;
+    }
+    .follow-box button {
+        background-color:rgb(224, 164, 201);
+        border: none;
+    }
+    .thumbnail {
+        width: 150px;
+    }
+</style>
+<script type="text/javascript">
+    function follow(p_id){
+        $.ajax({
+            type: "GET",
+            url: "{% url 'blog:follow' %}",
+            data: {
+                'target_id':p_id
+            },
+            dataType: 'json',
+            success: function(response){
+                // $('#like_count'+p_id).html(response.like_count)
+
+                if(response.message == "구독 신청"){
+                    $('#follow'+p_id).html('구독 중')
+                } else if (response.message == "구독 취소") {
+                    $('#follow'+p_id).html('구독하기')
+                }
+            },
+            error:function(request,status,error){
+                alert("code:"+request.status+"\n"+"message:"+request.responseText+"\n"+"error:"+error);
+            }
+
+        })
+    }
+
+</script>
+<br>
+<div class="big-container">
+    <br>
+
+
+    {% for post in onePost %}
+    <div class="follow-box">
+        &#128526; {{post.author}} 
+        {%if post.author != request.user%}
+            
+                {%if user.is_authenticated %}
+                <button id="{{post.author.id}}" onclick="follow(this.id)">
+                    {%if is_follow%}
+                    <span class="follow" id="follow{{post.author.id}}" >구독 중</span>
+                    {%else%}
+                    <span class="follow" id="follow{{post.author.id}}" >구독하기</span>
+                    {%endif%}
+                </button>
+                {%else%}
+                <button id="{{post.author.id}}" onclick="alert('로그인이 필요합니다')">
+                    <span class="follow" id="follow" >구독하기</span>
+                </button>
+                {%endif%}
+    
+        {%endif%}
+    </div>
+    {%endfor%}
+
+    {% for post in posts %}
+    <table class="post-table">
+        {% if post.image %}
+        <tr>
+            <td rowspan="2" class="thumbnail"><img src="{{post.image_thumbnail.url}}" alt="thumbnail"></td>
+        
+        {% endif %}
+            <td class="post_title"><a href="{%url 'blog:detail' post.id %}" class="post_title">{{post.title}}</a></td>
+        </tr>
+        <tr>
+            <td class="post_body">{{post.summary}}</td>
+        </tr>
+    </table>
+    <br>
+    {% endfor %}
+    
+    <div class="container direction">
+    {% if posts.has_previous %}
+        <a href="?page=1">First</a>
+        <a href="?page={{posts.previous_page_number}}">&#9194;</a>
+    {% endif %}
+
+        <span>{{posts.number}}</span>
+        <span>of</span>
+        <span>{{posts.paginator.num_pages}}</span>
+    
+    {% if posts.has_next %}
+        <a href="?page={{posts.next_page_number}}">&#9193;</a>
+        <a href="?page={{posts.paginator.num_pages}}">Last</a>
+    {% endif %}
+    </div>
+</div>
+<br>
+
+{% endblock %}
