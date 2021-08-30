@@ -132,7 +132,7 @@ def follow(request):
     target_fwlist = Follow.objects.filter(target = target)
     # print(target_fwlist)
     user = request.user
-    if target_fwlist.exists() and Follow.objects.get(target=target, follower=user):
+    if target_fwlist.exists() and Follow.objects.filter(target=target, follower=user).exists():
       Follow.objects.get(target=target, follower=user).delete()
       # target_fwlist.follower.remove(user)
       message = "구독 취소"
